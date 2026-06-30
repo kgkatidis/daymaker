@@ -1,0 +1,3 @@
+-keep class com.gkatidis.daymaker.models.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
