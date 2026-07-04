@@ -9,7 +9,7 @@ from tkinter import messagebox
 import json, os, threading, subprocess, urllib.request, urllib.error
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict
-import uuid, math
+import uuid, math, random
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
@@ -167,12 +167,45 @@ class ClaudeService:
     URL   = "https://api.anthropic.com/v1/messages"
     MODEL = "claude-sonnet-4-6"
     FALLBACKS = {
-        "morning":   "You are starting this day with everything you need. Trust yourself.",
-        "midday":    "You've already accomplished more today than you give yourself credit for.",
-        "afternoon": "The best part of your day is still ahead. Keep your momentum going.",
-        "evening":   "You made it through another day. That matters more than you know.",
-        "boost":     "You are exactly where you need to be. Keep showing up.",
+        "morning": [
+            "You are starting this day with everything you need. Trust yourself.",
+            "This morning is yours. Own it from the very first breath.",
+            "Every great day starts exactly like this — with you showing up.",
+            "The energy you bring this morning sets the tone for everything that follows.",
+        ],
+        "midday": [
+            "You've already accomplished more today than you give yourself credit for.",
+            "Halfway through the day and still standing. That's not nothing — that's everything.",
+            "Look at what you've already done. The second half is yours to dominate.",
+            "The momentum you've built this morning? Keep it going. You're doing better than you think.",
+        ],
+        "afternoon": [
+            "The best part of your day is still ahead. Keep your momentum going.",
+            "Afternoon slumps are for people who don't know what they're capable of. You do.",
+            "You've got more left in the tank than you realize. Push through — the finish line is worth it.",
+            "This is the hour that separates the ones who show up from the ones who give up. You show up.",
+        ],
+        "evening": [
+            "You made it through another day. That matters more than you know.",
+            "Tonight, be proud. You faced today and you didn't back down.",
+            "Every day you get through makes you stronger for the next one. Today counted.",
+            "Rest well — you earned it. Tomorrow you'll do it all over again, even better.",
+        ],
+        "boost": [
+            "You are exactly where you need to be. Keep showing up.",
+            "Right now, in this moment, you have everything it takes.",
+            "The version of you that existed a year ago would be proud of where you are today.",
+            "You are more capable than your doubts tell you. Trust the work you've put in.",
+            "Whatever is in front of you — you've handled harder. This is just the next thing.",
+            "Your potential isn't a destination. It's already inside you, waiting to be used.",
+            "Don't underestimate what consistency does. Every small action you take compounds.",
+            "You were built for this. Not the easy version — the real version.",
+        ],
     }
+
+    @classmethod
+    def _fallback(cls, key: str) -> str:
+        return random.choice(cls.FALLBACKS.get(key, ["You've got this."]))
 
     @classmethod
     def _call(cls, prompt: str, key: str, max_tokens=300) -> str:
@@ -199,9 +232,9 @@ class ClaudeService:
                       f"Be specific, warm, empowering. 2-3 sentences. "
                       f"No intro like 'Here is your...'. Just the message.")
             try:
-                result = cls._call(prompt, key) if key else cls.FALLBACKS.get(slot["key"], "")
+                result = cls._call(prompt, key) if key else cls._fallback(slot["key"])
             except:
-                result = cls.FALLBACKS.get(slot["key"], "")
+                result = cls._fallback(slot["key"])
             cb(result)
         threading.Thread(target=run, daemon=True).start()
 
@@ -213,9 +246,9 @@ class ClaudeService:
                       f"Give a sudden, powerful, personalized motivational boost. "
                       f"2-3 sentences. Pure energy. No preamble.")
             try:
-                result = cls._call(prompt, key) if key else cls.FALLBACKS["boost"]
+                result = cls._call(prompt, key) if key else cls._fallback("boost")
             except:
-                result = cls.FALLBACKS["boost"]
+                result = cls._fallback("boost")
             cb(result)
         threading.Thread(target=run, daemon=True).start()
 
@@ -226,10 +259,15 @@ class ClaudeService:
             prompt = (f"You are DayMaker. User: {ProfileService.summary()}. "
                       f"Write a deep Sunday Soul Letter. Reflect on their week, struggles, strengths. "
                       f"Warm, wise, specific. 3-4 paragraphs.")
+            soul_fallbacks = [
+                "Dear soul, this week you showed up. That alone is worth celebrating.",
+                "This week had its weight, and yet here you are. Still standing. Still trying. That is everything.",
+                "You gave this week everything you had. Whatever came back — you handled it. That's who you are.",
+            ]
             try:
-                result = cls._call(prompt, key, 800) if key else "Dear soul, this week you showed up. That alone is worth celebrating."
+                result = cls._call(prompt, key, 800) if key else random.choice(soul_fallbacks)
             except:
-                result = "Dear soul, this week you showed up. That alone is worth celebrating."
+                result = random.choice(soul_fallbacks)
             cb(result)
         threading.Thread(target=run, daemon=True).start()
 
@@ -242,9 +280,9 @@ class ClaudeService:
                       f"Write a Monthly Growth Letter for {month}. "
                       f"Celebrate growth, set intentions. 4-5 paragraphs. Inspiring and personal.")
             try:
-                result = cls._call(prompt, key, 1000) if key else f"A new month begins. {month} holds infinite possibility for you."
+                result = cls._call(prompt, key, 1000) if key else f"A new month begins. {month} holds infinite possibility for you. You've grown more than you know — now keep going."
             except:
-                result = f"A new month begins. {month} holds infinite possibility for you."
+                result = f"A new month begins. {month} holds infinite possibility for you. You've grown more than you know — now keep going."
             cb(result)
         threading.Thread(target=run, daemon=True).start()
 
